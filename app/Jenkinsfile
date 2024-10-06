@@ -1,0 +1,63 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs "node"
+    }
+
+    stages {
+        stage('increment version') {
+            steps {
+                script {
+                    dir("app") {
+                        sh "npm version minor"
+
+                        def packageJson = readJSON file: 'package.json'
+                        def version = packageJson.version
+
+                        env.IMAGE_NAME = "$version-$BUILD_NUMBER"
+                    }
+                }
+            }
+        }
+
+        stage('Run tests') {
+            steps {
+                script {
+                    dir("app") {
+                        sh "npm install"
+                        sh "npm run test"
+                    }
+                }
+            }
+        }
+
+        stage('Build and Push docker image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-credentials', usernameVariable: 'USER', passwordVariable: 'PASS')]){
+                    sh "docker build -t ebony9ja/nodes-twn-repo:${IMAGE_NAME} ./app"
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                    sh "docker push ebony9ja/nodes-twn-repo:${IMAGE_NAME}"
+                }
+            }
+        }
+        stage('deploy to EC2') {
+            steps {
+                script {
+                   def shellCmd = "bash ./server-cmds.sh ${IMAGE_NAME}"
+                   def ec2Instance = "ec2-user@public-ip-address"
+
+                   sshagent(['ec2-server-key']) {
+                       sh "scp -o StrictHostKeyChecking=no server-cmds.sh ${ec2Instance}:/home/ec2-user"
+                       sh "scp -o StrictHostKeyChecking=no docker-compose.yaml ${ec2Instance}:/home/ec2-user"
+                       sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
+                   }
+                }
+            }
+        }
+        stage('commit version update') {
+          ...
+        }
+    }
+}
+
