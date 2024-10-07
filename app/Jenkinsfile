@@ -45,12 +45,12 @@ pipeline {
         stage('deploy to EC2') {
             steps {
                 script {
-                   def shellCmd = "bash ./aws-exercises/app/server-cmds.sh ${IMAGE_NAME}"
+                   def shellCmd = "bash ./app/server-cmds.sh ${IMAGE_NAME}"
                    def ec2Instance = "ec2-user@15.156.203.203"
 
                    sshagent(['ec2-user-key-ed25519']) {
-                       sh "scp -o StrictHostKeyChecking=no server-cmds.sh ${ec2Instance}:/home/ec2-user"
-                       sh "scp -o StrictHostKeyChecking=no docker-compose.yaml ${ec2Instance}:/home/ec2-user"
+                       sh "scp -o StrictHostKeyChecking=no ./app/server-cmds.sh ${ec2Instance}:/home/ec2-user"
+                       sh "scp -o StrictHostKeyChecking=no ./app/docker-compose.yaml ${ec2Instance}:/home/ec2-user"
                        sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
                    }
                 }
