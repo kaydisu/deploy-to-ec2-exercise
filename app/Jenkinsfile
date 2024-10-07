@@ -45,7 +45,7 @@ pipeline {
         stage('deploying docker image to EC2') {
             steps {
                 script {
-                   def shellCmd = "bash why.sh ${IMAGE_NAME}"
+                   def shellCmd = "bash ./why.sh ${IMAGE_NAME}"
                    def ec2Instance = "ec2-user@15.156.203.203"
 
                    sshagent(['ec2-user-key-ed25519']) {
