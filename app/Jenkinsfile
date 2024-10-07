@@ -42,7 +42,7 @@ pipeline {
                 }
             }
         }
-        stage('deploy to EC2') {
+        stage('deploying docker image to EC2') {
             steps {
                 script {
                    def shellCmd = "bash app/why.sh ${IMAGE_NAME}"
@@ -51,7 +51,7 @@ pipeline {
                    sshagent(['ec2-user-key-ed25519']) {
                        sh "scp -o StrictHostKeyChecking=no app/why.sh ${ec2Instance}:/home/ec2-user"
                        sh "scp -o StrictHostKeyChecking=no app/docker-compose.yaml ${ec2Instance}:/home/ec2-user"
-                       sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
+                       sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} :/home/ec2-user"
                    }
                 }
             }
