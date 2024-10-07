@@ -45,12 +45,12 @@ pipeline {
         stage('deploy to EC2') {
             steps {
                 script {
-                   def shellCmd = "bash ~/app/why.sh ${IMAGE_NAME}"
+                   def shellCmd = "bash .app/why.sh ${IMAGE_NAME}"
                    def ec2Instance = "ec2-user@15.156.203.203"
 
                    sshagent(['ec2-user-key-ed25519']) {
-                       sh "scp -o StrictHostKeyChecking=no ~/app/why.sh ${ec2Instance}:/home/ec2-user"
-                       sh "scp -o StrictHostKeyChecking=no ~/app/docker-compose.yaml ${ec2Instance}:/home/ec2-user"
+                       sh "scp -o StrictHostKeyChecking=no .app/why.sh ${ec2Instance}:/home/ec2-user"
+                       sh "scp -o StrictHostKeyChecking=no .app/docker-compose.yaml ${ec2Instance}:/home/ec2-user"
                        sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
                    }
                 }
